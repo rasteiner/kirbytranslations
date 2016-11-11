@@ -15,9 +15,10 @@
           </tr>
           <?php foreach ($translations as $key => $strings): ?>
             <tr>
-              <td style="font-style: italic; border-bottom: 1px solid grey"><?php echo $key; ?></td>
-              <?php foreach ($strings as $lang => $value): ?>
-                <td><input style="width: 100%" type="text" name="<?php echo "trans__${lang}__${key}"; ?>" value="<?php echo html($value) ?>"></td>
+              <td style="font-style: italic; border-bottom: 1px solid grey"><?php echo esc($key); ?></td>
+              <?php foreach ($languages as $lang): ?>
+                <?php $value = $strings[$lang]; $value = str_replace("\"", "&#34;", $value); ?>
+                <td><input style="width: 100%" type="text" name="<?php echo esc("trans__${lang}__${key}"); ?>" value="<?php echo $value ?>"></td>
               <?php endforeach ?>
             </tr>
           <?php endforeach ?>
