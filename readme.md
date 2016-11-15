@@ -15,6 +15,17 @@ User input will be mapped to PHP's `addslashes` method, the plugin will do no ot
 This plugin has been tested with Kirby 2.3.2.
 
 ##Installation
+
+### Kirby CLI
+
+If you are using the Kirby CLI you can install this field plugin by running the following command in your shell from the root folder of your Kirby installation:
+
+```
+kirby plugin:install rasteiner/kirbytranslations
+```
+
+### Manual
+
 Download the repository, extract it into the `site/plugins` folder, then rename the extracted folder to "translations".
 
 ##Usage
