@@ -73,7 +73,9 @@ if(class_exists('Panel')) {
 		}
 
 		public function index() {
-			if(r::is('post') && csrf(get('csrf'))) {
+			if(r::is('post')) {
+				panel()->csrfCheck();
+
 				$this->setTranslations();
 				self::notify(':)');
 			}

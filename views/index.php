@@ -5,7 +5,8 @@
 
       <h2 class="hgroup hgroup-single-line hgroup-compressed cf"><span class="hgroup-title">Translations</span></h2>
 
-      <form method="POST" action="" class="form">
+
+      <form method="POST" action="<?php echo panel()->urls()->index . '/translations' ?>" class="form">
         <table style="width: 100%">
           <tr>
             <th>Key</th>
