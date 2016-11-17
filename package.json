@@ -1,0 +1,8 @@
+{
+  "name": "translations",
+  "description": "Kirby Translation Plugin",
+  "author": "Roman Steiner",
+  "version": "0.0.1",
+  "type": "kirby-plugin",
+  "license": "MIT"
+}
