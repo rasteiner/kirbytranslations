@@ -64,7 +64,7 @@ if(class_exists('Panel')) {
 				$lang = $splode[1];
 				$key = $splode[2];
 
-				$translations[$lang][] = 'l::set(\'' . addslashes($key) . '\', \'' . addslashes($pair['value']) . '\');';
+				$translations[$lang][] = 'l::set(\'' . addcslashes($key, '\\\'') . '\', \'' . addcslashes($pair['value'], '\\\'') . '\');';
 			}
 
 			foreach ($translations as $lang => $codelines) {
