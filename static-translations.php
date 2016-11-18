@@ -19,6 +19,15 @@ if(class_exists('Panel')) {
 
 			$backup = l::$data;
 
+			// build the keys to translate from defaultLanguage
+			l::$data = array();
+			$lang = site()->defaultLanguage()->code();
+			ob_start();
+			include $languagesRoot . DS . $lang .'.php';
+			ob_end_clean();
+			
+			$keys = array_keys(l::$data);
+
 			foreach (glob($languagesRoot . DS . '*.php') as $file) {
 				l::$data = array();
 				$lang = basename($file, '.php');
@@ -28,8 +37,8 @@ if(class_exists('Panel')) {
 				include $file;
 				ob_end_clean();
 
-				foreach (l::$data as $key => $value) {
-					$translations[$key][$lang] = $value;
+				foreach ($keys as $key) {
+					$translations[$key][$lang] = l::get($key, "");
 				}
 			}
 
