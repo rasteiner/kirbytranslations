@@ -97,10 +97,7 @@ if(class_exists('Panel')) {
 			if(r::is('post')) {
 				panel()->csrfCheck();
 
-				$temp = tmpfile();
-				$upload = new Upload($temp);
-				$rawdata = $upload->file()->content();
-				fclose($temp);
+				$rawdata = file_get_contents($_FILES['file']['tmp_name']);
 				$csv = array_map('str_getcsv', explode("\n", $rawdata));
 
 				$columns = array_shift($csv);
