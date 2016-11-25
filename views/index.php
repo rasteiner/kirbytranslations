@@ -30,6 +30,18 @@
           <input class="btn btn-rounded btn-submit" type="submit" value="<?php echo l::get('save'); ?>">
         </fieldset>
       </form>
+
+      <h2 class="hgroup hgroup-single-line hgroup-compressed cf"><span class="hgroup-title">Import / Export</span></h2>
+      <div class="section">
+        <a href="<?php echo panel()->urls()->index . '/translations/csv' ?>" class="btn btn-rounded">Download as CSV</a>
+      </div>
+      <div class="section">
+        <form method="POST" enctype="multipart/form-data" action="<?php echo panel()->urls()->index . '/translations/csv' ?>" class="form-upload-translations">
+          <input class="btn btn-rounded btn-submit" type="submit" value="Upload">
+          <input type="file" name="file" accept="text/csv">
+          <input type="hidden" name="csrf" value="<?php echo panel()->csrf() ?>">
+        </form>
+      </div>
     </div>
   </div>
 

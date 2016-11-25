@@ -4,6 +4,8 @@ namespace Toastlab\Kirby\Plugins\Translations;
 use \Kirby\Panel\Topbar;
 use \l;
 use \r;
+use header;
+use upload;
 
 if(class_exists('Panel')) {
 
@@ -90,6 +92,60 @@ if(class_exists('Panel')) {
 			}
 			return $this->screen('index', new TopbarGenerator(), $this->getTranslations());
 		}
+
+		public function csv() {
+			if(r::is('post')) {
+				panel()->csrfCheck();
+
+				$temp = tmpfile();
+				$upload = new Upload($temp);
+				$rawdata = $upload->file()->content();
+				fclose($temp);
+				$csv = array_map('str_getcsv', explode("\n", $rawdata));
+
+				$columns = array_shift($csv);
+				$translations = array();
+
+				foreach ($csv as $row) {
+					$key = $row[0];
+					if ($key == "") continue;
+
+					for ($i = 1; $i < count($columns); $i++) {
+						$lang = $columns[$i];
+						$value = $row[$i];
+						$translations[$lang][] = 'l::set(\'' . addcslashes($key, '\\\'') . '\', \'' . addcslashes($value, '\\\'') . '\');';
+					}
+				}
+
+				$languagesRoot = panel()->site()->kirby()->roots()->languages() . DS;
+				foreach ($translations as $lang => $codelines) {
+					file_put_contents($languagesRoot . $lang . '.php', "<?php \n\n" . join("\n", $codelines));
+				}
+
+				return go(panel()->urls()->index . '/translations');
+			}
+
+			$data = $this->getTranslations();
+			$csv = '"key"';
+			foreach ($data['languages'] as $lang) {
+				$csv = $csv . ',"' . $lang . '"';
+			}
+			$csv .= "\n";
+			foreach ($data['translations'] as $key => $strings) {
+				$csv .= '"' . $key . '"';
+				foreach ($data['languages'] as $lang) {
+				    $csv .= ',"' . str_replace("\"", "\"\"", $strings[$lang]) . '"';
+				}
+				$csv .= "\n";
+			}
+
+			header::download(array(
+				'name'     => "translations.csv",
+				'size'     => strlen($csv),
+				'mime'     => "text/csv"
+			));
+			die($csv);
+		}
 	}
 
 	class TopbarGenerator {
@@ -117,5 +173,13 @@ if(class_exists('Panel')) {
 		'method'  => 'GET|POST',
 		'filter'  => array('auth')
 	];
-
+	$panel->routes[] = [
+		'pattern' => 'translations/csv',
+		'action'  => function() {
+			$ctrl = new TranslationsController();
+			return $ctrl->csv();
+		},
+		'method'  => 'GET|POST',
+		'filter'  => array('auth')
+	];
 }
