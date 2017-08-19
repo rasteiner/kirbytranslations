@@ -79,6 +79,7 @@ if(class_exists('Panel')) {
 			foreach ($translations as $lang => $codelines) {
 				file_put_contents($languagesRoot . $lang . '.php', "<?php \n\n" . join("\n", $codelines));
 			}
+			panel()->kirby()->cache()->flush();
 		}
 
 		public function index() {
