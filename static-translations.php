@@ -50,30 +50,21 @@ if(class_exists('Panel')) {
 		public function setTranslations() {
 			$languagesRoot = panel()->site()->kirby()->roots()->languages() . DS;
 
-			$post = file_get_contents('php://input');
-			$post = array_map(function($item) {
-				
-				$splode = array_map('urldecode', explode('=', $item));
+			$post = r::data("jsondata");
+			$post = json_decode($post, true);
 
-				return [
-					'key' => $splode[0],
-					'value' => $splode[1]
-				];
+			$submitted = array_filter($post, function($key) {
+				return strpos($key, 'trans__') === 0;
+			}, ARRAY_FILTER_USE_KEY);
 
-			}, explode('&', $post));
-
-			$submitted = array_filter($post, function($pair) {
-				return strpos($pair['key'], 'trans__') === 0;
-			});
-			
 			$translations = array();
 
-			foreach ($submitted as $pair) {
-				$splode = explode('__', $pair['key'], 3);
+			foreach ($submitted as $key => $value) {
+				$splode = explode('__', $key, 3);
 				$lang = $splode[1];
 				$key = $splode[2];
 
-				$translations[$lang][] = 'l::set(\'' . addcslashes($key, '\\\'') . '\', \'' . addcslashes($pair['value'], '\\\'') . '\');';
+				$translations[$lang][] = 'l::set(\'' . addcslashes($key, '\\\'') . '\', \'' . addcslashes($value, '\\\'') . '\');';
 			}
 
 			foreach ($translations as $lang => $codelines) {

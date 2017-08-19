@@ -6,7 +6,7 @@
       <h2 class="hgroup hgroup-single-line hgroup-compressed cf"><span class="hgroup-title">Translations</span></h2>
 
 
-      <form method="POST" action="<?php echo panel()->urls()->index . '/translations' ?>" class="form">
+      <form id="form-static-translation">
         <table style="width: 100%">
           <tr>
             <th>Key</th>
@@ -30,7 +30,38 @@
           <input class="btn btn-rounded btn-submit" type="submit" value="<?php echo l::get('save'); ?>">
         </fieldset>
       </form>
+
+      <form method="POST" action="<?php echo panel()->urls()->index . '/translations' ?>" id="form-static-translation-json">
+          <input type="hidden" name="csrf" value="<?php echo panel()->csrf() ?>">
+          <input type="hidden" name="jsondata" value="">
+      </form>
+
     </div>
   </div>
 
 </div>
+
+<script type="text/javascript">
+// https://stackoverflow.com/questions/1255948/post-data-in-json-format
+(function() {
+    var form = document.getElementById("form-static-translation");
+    var jsonform = document.getElementById("form-static-translation-json");
+
+    form.onsubmit = function(e) {
+        // stop the regular form submission
+        e.preventDefault();
+
+        // collect the form data while iterating over the inputs
+        var data = {};
+        for (var i = 0, ii = form.length; i < ii; ++i) {
+          var input = form[i];
+          if (input.name) {
+            data[input.name] = input.value;
+          }
+        }
+
+        jsonform["jsondata"].value = JSON.stringify(data);
+        jsonform.submit();
+      };
+})();
+</script>
