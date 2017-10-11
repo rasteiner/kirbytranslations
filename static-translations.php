@@ -4,110 +4,180 @@ namespace Toastlab\Kirby\Plugins\Translations;
 use \Kirby\Panel\Topbar;
 use \l;
 use \r;
+use \c;
+use \s;
+use \yaml;
+use \Exception;
+
 
 if(class_exists('Panel')) {
 
-	class TranslationsController extends \Kirby\Panel\Controllers\Base {
-		public function view($file, $data = array()) {
-			return new TranslationsView($file, $data);
-		}
+  class TranslationsController extends \Kirby\Panel\Controllers\Base {
 
-		public function getTranslations() {
-			$languagesRoot = panel()->site()->kirby()->roots()->languages();
-			$languages = array();
-			$translations = array();
+    public static function setToCode($code, $language) {
+      $languagesRoot = panel()->site()->kirby()->roots()->languages();
+      $file = $languagesRoot . DS . $code;
+      
+      $matches = glob("$file.*");
 
-			$backup = l::$data;
+      if(count($matches) == 0) {
+        //if there is no file, create it as yaml
+        self::setToPHP("$file.php", $language);
 
-			// build the keys to translate from defaultLanguage
-			l::$data = array();
-			$lang = site()->defaultLanguage()->code();
-			ob_start();
-			include $languagesRoot . DS . $lang .'.php';
-			ob_end_clean();
-			
-			$keys = array_keys(l::$data);
+      } else {
+        $file = $matches[0];
 
-			foreach (glob($languagesRoot . DS . '*.php') as $file) {
-				l::$data = array();
-				$lang = basename($file, '.php');
-				$languages[] = $lang;
+        $info = pathinfo($file);
+        
+        switch (strtolower($info['extension'])) {
+          case 'yml':
+          case 'yaml':
+            self::setToYML($file, $language);
+            break;
+          
+          case 'php':
+            self::setToPHP($file, $language);
+            break;
+        }
+      }
+    }
 
-				ob_start();
-				include $file;
-				ob_end_clean();
+    public static function getFromCode($code) {
+      $languagesRoot = panel()->site()->kirby()->roots()->languages();
+      $file = $languagesRoot . DS . $code;
 
-				foreach ($keys as $key) {
-					$translations[$key][$lang] = l::get($key, "");
-				}
-			}
+      if(file_exists("$file.php")) {
+        return self::getFromPHP("$file.php");
+      } elseif(file_exists("$file.yml")) {
+        return self::getFromYML("$file.yml");
+      } elseif(file_exists("$file.yaml")) {
+        return self::getFromYML("$file.yaml");
+      }
 
-			l::$data = $backup;
+      return [];
+    }
 
-			return compact('languages', 'translations');
-		}
+    public static function getFromPHP($file) {
+      $backup = l::$data;
+      l::$data = array();
+      ob_start();
+      include $file;
+      ob_end_clean();
+      $data = l::$data;
+      l::$data = $backup;
+      return $data;
+    }
 
-		public function setTranslations() {
-			$languagesRoot = panel()->site()->kirby()->roots()->languages() . DS;
+    public static function setToPHP($file, $language) {
+      $content = "<?php \n\n";
 
-			$post = r::data("jsondata");
-			$post = json_decode($post, true);
+      foreach ($language as $key => $value) {
+        $content .= 'l::set(\'' . addcslashes($key, '\\\'') . '\', \'' . addcslashes($value, '\\\'') . '\');';
+        $content .= "\n";
+      }
 
-			$submitted = array_filter($post, function($key) {
-				return strpos($key, 'trans__') === 0;
-			}, ARRAY_FILTER_USE_KEY);
+      file_put_contents($file, $content);
+    }
 
-			$translations = array();
+    public function setToYML($file, $language) {
+      yaml::write($file, $language);
+    }
 
-			foreach ($submitted as $key => $value) {
-				$splode = explode('__', $key, 3);
-				$lang = $splode[1];
-				$key = $splode[2];
+    public static function getFromYML($file) {
+      return yaml::read($file);
+    }
 
-				$translations[$lang][] = 'l::set(\'' . addcslashes($key, '\\\'') . '\', \'' . addcslashes($value, '\\\'') . '\');';
-			}
+    public function view($file, $data = array()) {
+      return new TranslationsView($file, $data);
+    }
 
-			foreach ($translations as $lang => $codelines) {
-				file_put_contents($languagesRoot . $lang . '.php', "<?php \n\n" . join("\n", $codelines));
-			}
-			panel()->kirby()->cache()->flush();
-		}
+    public function getTranslations() {
+      $translations = array();
+      $languages = [];
 
-		public function index() {
-			if(r::is('post')) {
-				panel()->csrfCheck();
+      foreach (c::get('languages') as $lang) {
+        $code = $lang['code'];
 
-				$this->setTranslations();
-				self::notify(':)');
-			}
-			return $this->screen('index', new TopbarGenerator(), $this->getTranslations());
-		}
-	}
+        if($lang['default']) {
+          //the default language should be first
+          array_unshift($languages, $code); 
+        } else {
+          $languages[] = $code;
+        }
 
-	class TopbarGenerator {
-		public function topbar(Topbar $topbar) {
-			$topbar->append(panel()->site()->url() . '/panel/translations', 'Translations');
-		}
-	}
+        $translations[$code] = self::getFromCode($code);
+      }
 
-	class TranslationsView extends \Kirby\Panel\View {
-		public function __construct($file, $data = array()) {
-			parent::__construct($file, $data);
+      //merge keys from all languages
+      $keys = [];
+      foreach ($translations as $code => $data) {
+        foreach ($data as $key => $value) {
+          $keys[$key] = 1;
+        }
+      }
+      $keys = array_keys($keys);
 
-			$this->_root = __DIR__ . DS . 'views';
-		}
-	}
+      return compact('languages', 'translations', 'keys');
+    }
 
-	$panel = panel();
+    public function setTranslations() {
+      $post = r::data("jsondata");
+      $post = json_decode($post, true);
 
-	$panel->routes[] = [
-		'pattern' => 'translations',
-		'action'  => function() {
-			$ctrl = new TranslationsController();
-			return $ctrl->index();
-		},
-		'method'  => 'GET|POST',
-		'filter'  => array('auth')
-	];
+      foreach (c::get('languages') as $lang) {
+        $code = $lang['code'];
+        if($post[$code]) {
+          self::setToCode($code, $post[$code]);
+        }
+      }
+
+      panel()->kirby()->cache()->flush();
+    }
+
+    public function index() {
+      if(r::is('post')) {
+        $csrf = get('csrf');
+
+        if(empty($csrf) or $csrf !== s::get('kirby_panel_csrf')) {
+          try {
+            panel()->user()->logout();
+          } catch(Exception $e) {}
+          
+          panel()->redirect('login');
+        } else {
+          $this->setTranslations();
+          self::notify(':)');
+        }
+      }
+
+      return $this->screen('index', new TopbarGenerator(), $this->getTranslations());
+    }
+  }
+
+  class TopbarGenerator {
+    public function topbar(Topbar $topbar) {
+      $topbar->append(panel()->site()->url() . '/panel/translations', 'Translations');
+    }
+  }
+
+  class TranslationsView extends \Kirby\Panel\View {
+    public function __construct($file, $data = array()) {
+      parent::__construct($file, $data);
+
+      $this->_root = __DIR__ . DS . 'views';
+    }
+  }
+
+  $panel = panel();
+
+  $panel->routes[] = [
+    'pattern' => 'translations',
+    'action'  => function() {
+      $ctrl = new TranslationsController();
+      return $ctrl->index();
+    },
+    'method'  => 'GET|POST',
+    'filter'  => array('auth')
+  ];
 
 }
