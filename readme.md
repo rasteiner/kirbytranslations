@@ -28,7 +28,8 @@ Download the repository, extract it into the `site/plugins` folder, then rename 
 
 ## Usage
  - Install the plugin
- - Have something in your `site/languages/` folder
+ - Have your multilanguage config set
+ - Have something in your `site/languages/` folder, the plugin supports php and yml files
  - In your browser open `hostname/panel/translations`
  - Edit the text in shown table
  - Save by clicking the save button below, CTRL+S or simply Enter
