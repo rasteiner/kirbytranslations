@@ -1,6 +1,6 @@
 # Kirby translations plugin
 
-version 0.1.3
+version 0.2.0
 
 A plugin for the Kirby 2 CMS. It allows you to view, complete and correct translation entries of the `site/languages/*.php` files via the panel.
 

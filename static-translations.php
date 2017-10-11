@@ -21,7 +21,7 @@ if(class_exists('Panel')) {
       $matches = glob("$file.*");
 
       if(count($matches) == 0) {
-        //if there is no file, create it as yaml
+        //if there is no file, create it as php
         self::setToPHP("$file.php", $language);
 
       } else {
