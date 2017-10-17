@@ -146,7 +146,7 @@ if(class_exists('Panel')) {
           panel()->redirect('login');
         } else {
           $this->setTranslations();
-          self::notify(':)');
+          return panel()->notify(':)');
         }
       }
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.1] - 2017-10-17
+### Fixed
+- Fixed notifications when saving
+
 ## [0.2.0] - 2017-10-11
 ### Added
 - Support for YAML format

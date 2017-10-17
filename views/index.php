@@ -55,7 +55,7 @@
     $.post(<?php echo json_encode(panel()->urls()->index . '/translations') ?>, {
       jsondata: JSON.stringify(data),
     }).then(function(response){
-      console.log(response);
+      window.location.reload();
     });
 
   });
