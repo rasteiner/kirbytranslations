@@ -98,7 +98,7 @@ if(class_exists('Panel')) {
       foreach (c::get('languages') as $lang) {
         $code = $lang['code'];
 
-        if($lang['default'] && $lang['default']) {
+        if(isset($lang['default']) && $lang['default']) {
           //the default language should be first
           array_unshift($languages, $code); 
         } else {
