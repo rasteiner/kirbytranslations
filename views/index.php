@@ -18,7 +18,10 @@
             <tr>
               <td style="font-style: italic; border-bottom: 1px solid grey"><?php echo esc($key); ?></td>
               <?php foreach ($languages as $lang): ?>
-                <?php $value = $translations[$lang][$key]; $value = str_replace("\"", "&#34;", $value); ?>
+                <?php 
+                  $value = isset($translations[$lang][$key]) ? $translations[$lang][$key] : ''; 
+                  $value = str_replace("\"", "&#34;", $value);
+                ?>
                 <td><input style="width: 100%" type="text" data-lang="<?php echo $lang ?>" data-key="<?php echo $key ?>" value="<?php echo $value ?>"></td>
               <?php endforeach ?>
             </tr>
